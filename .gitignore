@@ -1,0 +1,10 @@
+# Build output
+*.exe
+*.exe.new
+*.exe.old
+dist/
+/wartable
+/war-table
+
+# Local test data
+*.log

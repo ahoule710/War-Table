@@ -1,0 +1,8 @@
+## Interface: 120105, 120100
+## Title: War Table Companion
+## Notes: Saves your Great Vault, Mythic+ runs and raid lockouts for the War Table desktop app.
+## Author: Al
+## Version: 1.0.2
+## SavedVariables: WarTableDB
+
+WarTableCompanion.lua

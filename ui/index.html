@@ -1,0 +1,1000 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>War Table</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 1 3 5.5v9C3 23 8.5 28.6 16 31c7.5-2.4 13-8 13-16.5v-9Z' fill='%23dcb65e'/%3E%3Cpath d='M16 5 7 8v6.5C7 20.5 11 24.8 16 27c5-2.2 9-6.5 9-12.5V8Z' fill='%230d1322'/%3E%3Cpath d='M16 8.5 17.8 14 23 15.5 17.8 17 16 22.5 14.2 17 9 15.5 14.2 14Z' fill='%23f0cf80'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Cinzel:wght@600;700&family=Uncial+Antiqua&family=Almendra:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Compact overlay: header + character strip + segmented nav, one scrolling view, settings as a slide-over sheet. */
+:root{
+  --bg:#0b101c; --bg2:#111829; --card:rgba(26,34,54,.78); --card2:rgba(255,255,255,.035);
+  --edge:rgba(150,170,210,.13); --edge2:rgba(150,170,210,.24);
+  --fg:#ece6d6; --muted:#9ba4b8; --faint:#6a7490;
+  --gold:#dcb65e; --good:#63c48f; --warn:#e5a84d; --bad:#e6705f;
+  --spec:#dcb65e; --spec2:#9ba4b8;
+  --display:"Marcellus","Palatino Linotype",Georgia,serif;
+  --r:16px; --r-sm:12px;
+  --aura:radial-gradient(520px 340px at 0% -10%,rgba(220,182,94,.2),transparent 70%),linear-gradient(180deg,#111829,#0b101c 55%);
+  --aura-size:auto;
+  --card-deco:linear-gradient(transparent,transparent);
+  --gem-off:rgba(255,255,255,.07); --gem-clip:none; --gem-r:8px;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",Consolas,monospace;
+  color-scheme:dark;
+}
+
+/* ---------- Class themes ---------- */
+/* Warrior: Forge. Iron, bronze, a blood-red forge glow, riveted plates. */
+body[data-class="war"]{
+  --bg:#100d0b; --bg2:#1c1612; --card:rgba(36,29,24,.88); --card2:rgba(255,235,210,.035);
+  --edge:rgba(198,155,109,.2); --edge2:rgba(198,155,109,.36);
+  --fg:#f0e6d8; --muted:#ab9c8c; --faint:#7d7064;
+  --spec:#c69b6d; --spec2:#c2412f; --gold:#d6a868;
+  --display:"Cinzel","Trajan Pro",Georgia,serif;
+  --r:5px; --r-sm:4px;
+  --aura:radial-gradient(640px 300px at 50% 116%,rgba(194,65,47,.3),transparent 70%),radial-gradient(420px 260px at 0% -10%,rgba(198,155,109,.16),transparent 70%),repeating-linear-gradient(135deg,rgba(255,255,255,.02) 0 1px,transparent 1px 5px),linear-gradient(180deg,#1c1612,#100d0b 60%);
+  --card-deco:radial-gradient(circle at 7px 7px,rgba(214,168,104,.6) 1.3px,transparent 2px),radial-gradient(circle at calc(100% - 7px) 7px,rgba(214,168,104,.6) 1.3px,transparent 2px),radial-gradient(circle at 7px calc(100% - 7px),rgba(214,168,104,.6) 1.3px,transparent 2px),radial-gradient(circle at calc(100% - 7px) calc(100% - 7px),rgba(214,168,104,.6) 1.3px,transparent 2px),linear-gradient(180deg,rgba(255,255,255,.04),transparent 38%);
+  --gem-off:rgba(255,230,200,.07); --gem-clip:polygon(0 0,100% 0,100% 58%,50% 100%,0 58%); --gem-r:0;
+}
+body[data-class="war"] .card{box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 1px 0 rgba(0,0,0,.4)}
+body[data-class="war"] .label{letter-spacing:.18em;color:color-mix(in srgb,var(--spec) 70%,var(--muted))}
+body[data-class="war"] .spec-hero h1{letter-spacing:.03em}
+
+/* Shaman: Tidecaller. Deep water, spirit light, soft organic shapes. */
+body[data-class="sham"]{
+  --bg:#05141a; --bg2:#0a2430; --card:rgba(10,40,52,.8); --card2:rgba(200,240,255,.04);
+  --edge:rgba(110,200,225,.17); --edge2:rgba(110,200,225,.32);
+  --fg:#e5f4f3; --muted:#92b6ba; --faint:#5f868b;
+  --spec:#3d93f2; --spec2:#4fd1a8; --gold:#7fd8c6;
+  --display:"Uncial Antiqua",Georgia,serif;
+  --r:22px; --r-sm:16px;
+  --aura:radial-gradient(520px 320px at 100% -10%,rgba(79,209,168,.17),transparent 70%),radial-gradient(640px 420px at 0% 112%,rgba(61,147,242,.24),transparent 70%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='28'%3E%3Cpath d='M0 14 Q17.5 4 35 14 T70 14 T105 14 T140 14' fill='none' stroke='rgba(127,216,198,0.07)' stroke-width='1.4'/%3E%3C/svg%3E"),linear-gradient(180deg,#0a2430,#05141a 60%);
+  --aura-size:auto,auto,140px 28px,auto;
+  --card-deco:radial-gradient(130% 80% at 50% -35%,rgba(79,209,168,.11),transparent 62%);
+  --gem-off:rgba(200,240,255,.07); --gem-clip:none; --gem-r:50%;
+}
+body[data-class="sham"] .card{box-shadow:inset 0 0 24px -12px rgba(79,209,168,.25)}
+body[data-class="sham"] .label{color:color-mix(in srgb,var(--spec2) 65%,var(--muted))}
+body[data-class="sham"] .vg i{width:28px;height:28px}
+
+/* Fire Mage: Pyre. Embers below, arcane light above, runes. */
+body[data-class="mage"]{
+  --bg:#120806; --bg2:#22100a; --card:rgba(44,20,13,.84); --card2:rgba(255,220,190,.04);
+  --edge:rgba(255,140,70,.19); --edge2:rgba(255,140,70,.34);
+  --fg:#f8ebdf; --muted:#c6a796; --faint:#8c6e5f;
+  --spec:#ff7a2f; --spec2:#3fc7eb; --gold:#ffb35c;
+  --display:"Almendra",Georgia,serif;
+  --r:12px; --r-sm:9px;
+  --aura:radial-gradient(720px 360px at 50% 120%,rgba(255,90,30,.34),transparent 70%),radial-gradient(380px 260px at 106% -6%,rgba(63,199,235,.15),transparent 70%),linear-gradient(180deg,#22100a,#120806 60%);
+  --card-deco:linear-gradient(180deg,rgba(255,150,80,.07),transparent 36%);
+  --gem-off:rgba(255,220,190,.07); --gem-clip:polygon(50% 0,100% 50%,50% 100%,0 50%); --gem-r:0;
+}
+body[data-class="mage"] .card{box-shadow:inset 0 1px 0 rgba(255,180,120,.07)}
+body[data-class="mage"] .label{color:color-mix(in srgb,var(--gold) 60%,var(--muted))}
+body[data-class="mage"] .vg i{width:30px;height:30px}
+body[data-class="mage"] .spec-hero h1{font-weight:700}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg)}
+body{font-family:var(--body);font-size:14px;line-height:1.5;display:flex;flex-direction:column;overflow:hidden}
+body{transition:background-color .4s,color .4s}
+.aura{position:fixed;inset:0;z-index:0;pointer-events:none;background:var(--aura);background-size:var(--aura-size)}
+#fx{position:fixed;inset:0;z-index:0;pointer-events:none;width:100%;height:100%}
+#tip{position:fixed;z-index:50;max-width:260px;padding:7px 10px;border-radius:8px;background:color-mix(in srgb,var(--bg) 92%,black);border:1px solid var(--edge2);color:var(--fg);font-size:12px;line-height:1.4;pointer-events:none;opacity:0;transform:translateY(-2px);transition:opacity .12s,transform .12s;box-shadow:0 8px 24px -8px rgba(0,0,0,.7)}
+#tip.on{opacity:1;transform:none}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--edge2);border-radius:8px}::-webkit-scrollbar-track{background:transparent}
+
+header{position:relative;z-index:2;padding:12px 14px 0}
+.hrow{display:flex;align-items:center;gap:10px}
+.mark{font-family:var(--display);transition:color .3s;font-size:20px;letter-spacing:.02em;margin-right:auto;display:flex;align-items:center;gap:8px}
+.mark svg{width:18px;height:18px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);background:var(--card2);border:1px solid var(--edge);border-radius:999px;padding:3px 10px}
+.chip b{font-family:var(--mono);font-weight:500;color:var(--fg);font-variant-numeric:tabular-nums}
+.icon-btn{width:32px;height:32px;border-radius:10px;border:1px solid var(--edge);background:var(--card2);display:grid;place-content:center;cursor:pointer;color:var(--muted)}
+.icon-btn:hover{color:var(--fg);border-color:var(--edge2)}
+.icon-btn svg{width:17px;height:17px}
+
+.chars{display:flex;gap:8px;overflow-x:auto;padding:12px 0 2px;scrollbar-width:none}
+.chars::-webkit-scrollbar{display:none}
+.char{flex:none;display:flex;align-items:center;gap:9px;padding:7px 12px 7px 8px;border-radius:var(--r-sm);border:1px solid var(--edge);background:var(--card);cursor:pointer;text-align:left;transition:border-color .2s,box-shadow .2s}
+.char .gem{width:28px;height:28px;border-radius:calc(var(--r-sm) - 3px);display:grid;place-content:center;font-family:var(--display);font-size:14px;color:#140f0b;background:var(--c)}
+.char .gem svg{width:17px;height:17px}
+.char .t b{display:block;font-weight:500;font-size:13px;line-height:1.2}
+.char .t small{display:block;color:var(--muted);font-size:11px;line-height:1.2}
+.char[aria-pressed="true"]{border-color:color-mix(in srgb,var(--c) 70%,transparent);box-shadow:0 6px 22px -12px var(--c)}
+
+.seg{display:flex;gap:4px;margin:12px 0 0;padding:4px;border-radius:var(--r-sm);background:var(--card2);border:1px solid var(--edge)}
+.seg button{flex:1;border:0;background:none;padding:7px 0;border-radius:calc(var(--r-sm) - 3px);cursor:pointer;color:var(--muted);font-weight:500;font-size:13px;transition:background .2s,color .2s}
+.seg button[aria-selected="true"]{background:color-mix(in srgb,var(--spec) 22%,transparent);color:var(--fg)}
+
+main{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;padding:14px 14px 18px}
+.view{display:flex;flex-direction:column;gap:12px;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.card{background:var(--card-deco),var(--card);border:1px solid var(--edge);border-radius:var(--r);padding:14px 15px}
+.label{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.row{display:flex;align-items:center;gap:10px}
+.sp{margin-left:auto}
+h2{font-family:var(--display);font-weight:400;font-size:18px;margin:0}
+.muted{color:var(--muted)}.faint{color:var(--faint)}
+.small{font-size:12px}
+a,.link{color:var(--gold);cursor:pointer;background:none;border:0;padding:0;text-decoration:underline;text-underline-offset:3px}
+.btn{border:0;border-radius:10px;padding:8px 14px;font-weight:600;cursor:pointer;background:var(--gold);color:#1b1508}
+.btn.ghost{background:var(--card2);color:var(--fg);border:1px solid var(--edge2);font-weight:500}
+.btn.sm{padding:5px 10px;font-size:12.5px}
+.btn:disabled{opacity:.5;cursor:default}
+
+/* Update bar */
+.updbar{display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 10px 8px 12px;border-radius:var(--r-sm);background:color-mix(in srgb,var(--gold) 14%,transparent);border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);font-size:13px}
+.updbar span{flex:1;min-width:0}
+.updbar .btn{flex:none}
+.notes-box{white-space:pre-wrap;font-size:12.5px;color:var(--muted);margin-top:8px;max-height:160px;overflow:auto;padding:8px 10px;border-radius:8px;background:rgba(0,0,0,.2)}
+
+/* Setup */
+.setup{border-color:color-mix(in srgb,var(--gold) 40%,transparent)}
+.steps{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.step{display:flex;gap:10px;align-items:flex-start}
+.step .n{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-content:center;font-size:11px;font-family:var(--mono);border:1.5px solid var(--edge2);color:var(--muted)}
+.step.done .n{background:var(--good);border-color:var(--good);color:var(--bg)}
+.step .s{flex:1;min-width:0}
+.step .s b{font-weight:500}
+.step .s p{margin:2px 0 6px;color:var(--muted);font-size:12.5px;overflow-wrap:anywhere}
+.step .s code{font-family:var(--mono);font-size:11.5px;color:var(--fg)}
+
+/* Vault */
+.banner-ready{display:flex;gap:10px;align-items:center;padding:10px 14px;border-radius:14px;background:color-mix(in srgb,var(--gold) 16%,transparent);border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);color:var(--fg)}
+.vrow{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--edge)}
+.vrow:first-of-type{border-top:0}
+.vrow .vt{flex:1;min-width:0}
+.vrow .vt b{font-weight:500;display:block}
+.vrow .vt small{color:var(--muted);font-size:12px}
+.gems{display:flex;gap:6px}
+.vg{width:36px;text-align:center}
+.vg i{display:block;width:32px;height:28px;margin:0 auto;border-radius:var(--gem-r);clip-path:var(--gem-clip);background:var(--gem-off);box-shadow:inset 0 0 0 1.5px var(--edge2)}
+.vg.on{filter:drop-shadow(0 0 6px color-mix(in srgb,var(--spec) 70%,transparent))}
+.vg.on i{background:linear-gradient(180deg,color-mix(in srgb,var(--spec) 70%,white),var(--spec) 60%,color-mix(in srgb,var(--spec) 70%,black));box-shadow:none}
+.vg.part i{background:linear-gradient(0deg,color-mix(in srgb,var(--spec) 38%,transparent) var(--p),var(--gem-off) var(--p))}
+.vg span{display:block;font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:3px}
+.vg.on span{color:var(--fg)}
+.sync{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--faint);margin-top:8px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--good)}
+.dot.old{background:var(--warn)}
+
+.runs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.run{font-size:12px;padding:3px 9px;border-radius:999px;border:1px solid var(--edge2);background:var(--card2)}
+.run b{font-family:var(--mono);font-weight:500;color:var(--spec)}
+.run.miss{opacity:.55}
+.stat{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px;font-size:13px}
+.stat span{color:var(--muted)}.stat b{font-weight:500;color:var(--fg)}
+.raid{margin-top:10px}
+.raid .rt{display:flex;justify-content:space-between;font-size:13px}
+.bar{height:6px;border-radius:6px;background:var(--edge);overflow:hidden;margin-top:5px}
+.bar i{display:block;height:100%;background:var(--spec);border-radius:6px}
+
+.runes{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.rune{width:30px;height:28px;border-radius:8px;border:1.5px solid var(--edge2);background:transparent;cursor:pointer;font-family:var(--mono);font-size:11px;color:var(--faint)}
+.rune.on{background:color-mix(in srgb,var(--spec) 75%,transparent);border-color:var(--spec);color:var(--bg)}
+.rune.slot{box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 50%,transparent)}
+
+.quests{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+@media (max-width:380px){.quests{grid-template-columns:1fr}}
+.q{display:flex;gap:9px;align-items:flex-start;text-align:left;padding:9px 10px;border-radius:12px;border:1px solid var(--edge);background:var(--card2);cursor:pointer;transition:border-color .2s,background .2s}
+.q .bx{flex:none;width:17px;height:17px;border-radius:50%;border:1.5px solid var(--edge2);margin-top:1px;display:grid;place-content:center}
+.q b{display:block;font-weight:500;font-size:13px;line-height:1.25}
+.q small{display:block;color:var(--muted);font-size:11.5px;line-height:1.3;margin-top:1px}
+.q[aria-pressed="true"]{background:color-mix(in srgb,var(--spec) 11%,transparent);border-color:color-mix(in srgb,var(--spec) 45%,transparent)}
+.q[aria-pressed="true"] .bx{background:var(--spec);border-color:var(--spec)}
+.q[aria-pressed="true"] .bx::after{content:"";width:4px;height:8px;border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.q[aria-pressed="true"] b{color:var(--muted);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--spec) 60%,transparent)}
+.q .auto{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--good);font-weight:600}
+.q:disabled{cursor:default}
+
+/* Spec */
+.spec-hero{position:relative;overflow:hidden}
+.spec-hero > *{position:relative}
+.spec-hero .wm{position:absolute;right:-18px;top:-14px;width:150px;height:150px;opacity:.07;color:var(--spec);pointer-events:none}
+.spec-hero .wm svg{width:100%;height:100%}
+.spec-hero .runes-c{position:absolute;right:-46px;top:-46px;width:210px;height:210px;opacity:.16;color:var(--spec2);pointer-events:none;animation:spin 90s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spec-hero .role{color:var(--spec);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.spec-hero h1{font-family:var(--display);font-weight:400;font-size:28px;line-height:1.1;margin:4px 0 0}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tag{font-size:11.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--edge2);color:var(--muted)}
+.tag.hero{color:var(--fg);border-color:color-mix(in srgb,var(--spec) 60%,transparent);background:color-mix(in srgb,var(--spec) 12%,transparent)}
+.tag.good{color:var(--good);border-color:color-mix(in srgb,var(--good) 45%,transparent)}
+.tag.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
+.verdict{margin:10px 0 0;font-size:13.5px;line-height:1.55}
+.wave{position:relative;padding-left:18px;margin-top:12px}
+.wave::before{content:"";position:absolute;left:4px;top:8px;bottom:-12px;width:1px;background:var(--edge2)}
+.wave:last-child::before{display:none}
+.wave::after{content:"";position:absolute;left:0;top:5px;width:9px;height:9px;border-radius:50%;border:2px solid var(--edge2);background:var(--bg)}
+.wave.now::after{background:var(--spec);border-color:var(--spec);box-shadow:0 0 10px var(--spec)}
+.wave .ver{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.wave.now .ver{color:var(--fg)}
+.wave p{margin:4px 0 0;font-size:13px;line-height:1.45}
+.habit{display:flex;gap:10px;font-size:13px;line-height:1.45;margin-top:8px}
+.habit::before{content:"";flex:none;width:5px;height:5px;margin-top:8px;border-radius:1px;transform:rotate(45deg);background:var(--spec)}
+.piece{display:flex;gap:10px;margin-top:8px;font-size:13px;line-height:1.45}
+.piece b{flex:none;font-family:var(--display);color:var(--spec);font-size:15px;width:30px}
+textarea.notes{width:100%;min-height:96px;resize:vertical;margin-top:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--edge);background:rgba(0,0,0,.2);line-height:1.5}
+.links{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.links button{font-size:12px;padding:5px 10px;border-radius:999px;border:1px solid var(--edge2);background:var(--card2);cursor:pointer}
+.links button:hover{border-color:var(--spec)}
+
+/* Ask */
+.ask{display:flex;flex-direction:column;height:100%}
+main.asking{display:flex;flex-direction:column;padding-bottom:0}
+.log{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding-bottom:10px}
+.welcome{margin-top:auto;color:var(--muted);font-size:13.5px}
+.welcome .big{font-family:var(--display);font-size:21px;color:var(--fg);margin-bottom:6px}
+.msg{max-width:92%;font-size:13.5px;line-height:1.55;overflow-wrap:anywhere;animation:fade .2s ease}
+.msg.me{align-self:flex-end;background:color-mix(in srgb,var(--spec) 22%,#172034);padding:8px 12px;border-radius:16px 16px 4px 16px}
+.msg.ai{align-self:flex-start;padding:1px 0 1px 12px;border-left:2px solid color-mix(in srgb,var(--spec) 55%,transparent)}
+.msg.ai p{margin:0 0 7px}.msg.ai p:last-child{margin:0}
+.msg.ai ul{margin:3px 0 7px;padding-left:17px}
+.msg.ai li::marker{color:var(--spec)}
+.msg.ai code{font-family:var(--mono);font-size:12px;background:rgba(0,0,0,.3);padding:1px 4px;border-radius:4px}
+.msg.sys{align-self:center;text-align:center;color:var(--muted);font-size:12px}
+.status{color:var(--muted);font-style:italic;font-size:12.5px}
+.dots::after{content:"";animation:dots 1.2s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+.prompts{display:flex;gap:6px;overflow-x:auto;padding:6px 0 8px;scrollbar-width:none}
+.prompts::-webkit-scrollbar{display:none}
+.prompts button{flex:none;font-size:12px;padding:5px 10px;border-radius:999px;border:1px solid var(--edge2);background:var(--card2);cursor:pointer;white-space:nowrap}
+.prompts button:hover{border-color:var(--spec)}
+.composer{display:flex;align-items:flex-end;gap:6px;padding:5px 5px 5px 12px;margin-bottom:12px;border-radius:16px;border:1px solid var(--edge2);background:rgba(0,0,0,.28)}
+.composer:focus-within{border-color:color-mix(in srgb,var(--spec) 60%,transparent)}
+.composer textarea{flex:1;min-width:0;resize:none;height:34px;max-height:120px;border:0;background:transparent;outline:none;padding:7px 0}
+.send{flex:none;width:34px;height:34px;border-radius:11px;border:0;background:var(--spec);color:var(--bg);cursor:pointer;display:grid;place-content:center}
+.send:disabled{opacity:.4;cursor:default}
+.send svg{width:16px;height:16px}
+.askbar{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);padding-bottom:4px}
+.toggle{display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+.toggle input{appearance:none;width:28px;height:16px;border-radius:999px;background:var(--edge2);position:relative;cursor:pointer;margin:0;transition:background .2s}
+.toggle input::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--fg);transition:transform .2s}
+.toggle input:checked{background:var(--spec)}
+.toggle input:checked::after{transform:translateX(12px)}
+
+/* Settings sheet */
+.scrim{position:fixed;inset:0;z-index:20;background:rgba(5,8,15,.6);opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;z-index:21;top:0;right:0;bottom:0;width:min(100%,420px);background:#111829;border-left:1px solid var(--edge2);transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column}
+.sheet.open{transform:none}
+.sheet header{padding:14px 16px;display:flex;align-items:center;border-bottom:1px solid var(--edge)}
+.sheet .body{flex:1;overflow-y:auto;padding:14px 16px 24px;display:flex;flex-direction:column;gap:14px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+.field input[type=text],.field input[type=password]{width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--edge2);background:rgba(0,0,0,.25)}
+.field .row{gap:6px}
+.field .row input{flex:1;min-width:0}
+.note{font-size:12px;color:var(--faint);margin-top:6px}
+.msgline{font-size:12.5px;margin-top:6px}
+.msgline.ok{color:var(--good)}.msgline.err{color:var(--bad)}.msgline.warn{color:var(--warn)}
+input[type=range]{width:100%;accent-color:var(--gold)}
+.screens{display:flex;flex-wrap:wrap;gap:8px}
+.scr{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:8px 12px;border-radius:12px;border:1px solid var(--edge2);background:var(--card2);cursor:pointer;text-align:left;min-width:120px}
+.scr b{font-weight:500;font-size:13px}
+.scr small{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.scr[aria-pressed="true"]{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,transparent)}
+.scr:disabled{opacity:.6;cursor:default}
+details summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+kbd{font-family:var(--mono);font-size:11px;padding:1px 6px;border:1px solid var(--edge2);border-bottom-width:2px;border-radius:5px;background:var(--card2)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="aura" aria-hidden="true"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div id="tip" role="tooltip"></div>
+
+<header>
+  <div class="hrow">
+    <div class="mark"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 8 13v17c0 15 10 26 24 30 14-4 24-15 24-30V13Z" fill="#dcb65e"/><path d="M32 14 18 19v11c0 9 6 16 14 19 8-3 14-10 14-19V19Z" fill="#0b101c"/></svg>War Table</div>
+    <span class="chip" id="resetChip">Reset <b id="resetIn">…</b></span>
+    <button class="icon-btn" id="openSettings" aria-label="Settings" data-tip="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button>
+  </div>
+  <div class="chars" id="chars" role="group" aria-label="Characters"></div>
+  <div class="seg" role="tablist" id="seg">
+    <button role="tab" data-view="week" id="tab-week" data-tip="Vault, keys, raids and your checklist">Week</button>
+    <button role="tab" data-view="spec" id="tab-spec" data-tip="Patch changes, habits, tier set and notes">Spec</button>
+    <button role="tab" data-view="ask" id="tab-ask" data-tip="Ask the War Table anything">Ask</button>
+  </div>
+  <div class="updbar" id="updBar" hidden><span id="updText"></span><button class="link small" id="updNotes">What's new</button><button class="btn sm" id="updGo">Update now</button></div>
+</header>
+
+<main id="main"></main>
+
+<div class="scrim" id="scrim"></div>
+<aside class="sheet" id="sheet" aria-label="Settings" aria-hidden="true">
+  <header><h2>Settings</h2><button class="icon-btn sp" id="closeSettings" aria-label="Close settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
+  <div class="body">
+    <section class="card">
+      <div class="label">Assistant</div>
+      <div class="field" style="margin-top:10px">
+        <label for="apiKey">Anthropic API key</label>
+        <div class="row"><input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off" spellcheck="false"><button class="btn sm" id="saveKey">Save</button></div>
+        <div class="msgline" id="keyMsg"></div>
+        <p class="note">Stored encrypted with your Windows login (DPAPI) on this PC only. Get a key at <button class="link" data-open="https://console.anthropic.com/settings/keys">console.anthropic.com</button>. Usage is billed to your API account, separate from your Claude plan.</p>
+        <div class="row" style="margin-top:8px"><button class="btn ghost sm" id="testKey">Test key</button><button class="btn ghost sm" id="removeKey">Remove key</button></div>
+      </div>
+      <div style="margin-top:12px"><label class="toggle"><input type="checkbox" id="webSearch"> Let it look up live patch notes and hotfixes</label><p class="note">Uses Anthropic's web search tool. Each lookup has a small extra API cost.</p></div>
+      <details style="margin-top:10px">
+        <summary>Advanced: models</summary>
+        <div class="field" style="margin-top:8px"><label for="model">Main model</label><input type="text" id="model" spellcheck="false"></div>
+        <div class="field" style="margin-top:8px"><label for="fastModel">Fast model</label><input type="text" id="fastModel" spellcheck="false"></div>
+        <button class="btn ghost sm" id="saveModels" style="margin-top:8px">Save models</button>
+      </details>
+    </section>
+
+    <section class="card">
+      <div class="label">World of Warcraft</div>
+      <div class="field" style="margin-top:10px">
+        <label for="wowPath">WoW folder</label>
+        <div class="row"><input type="text" id="wowPath" placeholder="Auto-detected" spellcheck="false"><button class="btn ghost sm" id="saveWow">Save</button></div>
+        <div class="msgline" id="wowMsg"></div>
+      </div>
+      <div class="row" style="margin-top:10px;flex-wrap:wrap;gap:6px"><button class="btn sm" id="installAddon">Install addon</button><button class="btn ghost sm" id="openAddon">Open addon folder</button></div>
+      <div class="msgline" id="addonMsg"></div>
+      <p class="note">The addon saves your Vault, Mythic+ runs and raid lockouts. WoW writes it to disk when you <kbd>/reload</kbd> or log out, and the app picks it up within seconds.</p>
+    </section>
+
+    <section class="card">
+      <div class="label">Overlay</div>
+      <div class="field" style="margin-top:10px"><label>Screen</label><div class="screens" id="screens"><span class="faint small">Checking screens…</span></div><div class="msgline" id="screenMsg"></div></div>
+      <div style="margin-top:12px"><label class="toggle"><input type="checkbox" id="onTop"> Keep on top of the game</label></div>
+      <div style="margin-top:10px"><label class="toggle"><input type="checkbox" id="ambient"> Ambient effects (sparks, embers, water)</label></div>
+      <div class="field" style="margin-top:12px"><label for="opacity">Window opacity <span id="opVal" class="faint"></span></label><input type="range" id="opacity" min="50" max="100" step="5"></div>
+      <p class="note">It opens wherever you last left it, so you can also just drag it. Press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>W</kbd> to hide or show the War Table. For it to sit over WoW, set Options &gt; Graphics &gt; Display Mode to Windowed (Fullscreen).</p>
+    </section>
+
+    <section class="card">
+      <div class="label">Updates</div>
+      <p class="small" style="margin:8px 0 0" id="updStatus">Checking…</p>
+      <div class="row" style="margin-top:8px;flex-wrap:wrap;gap:6px"><button class="btn ghost sm" id="updCheck">Check now</button><button class="btn sm" id="updInstall" hidden>Update now</button><button class="link small" data-open="https://github.com/ahoule710/war-table/releases">All releases on GitHub</button></div>
+      <div class="notes-box" id="updNotesBox" hidden></div>
+      <p class="note">Updates come from the War Table repo on GitHub. Each download is checked against its published checksum before it's installed.</p>
+    </section>
+
+    <section class="row" style="justify-content:space-between">
+      <span class="faint small" id="ver"></span>
+      <button class="btn ghost sm" id="quitBtn">Quit War Table</button>
+    </section>
+  </div>
+</aside>
+
+<script>
+const TOKEN = "__WT_TOKEN__";
+async function api(path, body){
+  const r = await fetch(path, {method: body===undefined?"GET":"POST", headers:{"X-WT-Token":TOKEN,"Content-Type":"application/json"}, body: body===undefined?undefined:JSON.stringify(body)});
+  let data = {}; try{ data = await r.json(); }catch(e){}
+  if(!r.ok) throw new Error(data.error || ("Request failed ("+r.status+")"));
+  return data;
+}
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- Spec intel (verified Oct 25, 2026, patch 12.1.5) ---------- */
+const SPECS = {
+  war:{cls:"WARRIOR",short:"Prot Warrior",name:"Protection Warrior",role:"Tank",color:"#c69b6d",hero:"Colossus",
+    tags:[["hero","Colossus"],["good","Tuned in 12.1.5"],["","Rework pushed to 12.2 / 13.0"]],
+    status:"Stable and playable. 12.1.5 makes Colossus more Rage efficient, so you get more Revenge and Execute casts. Blizzard said bigger Protection changes need a major patch, so expect real rework in 12.2 or the next expansion.",
+    changes:[{v:"12.1.5",now:1,items:["Practiced Strikes now also cuts Execute and Revenge Rage cost by 10 (Colossus).","Goal: better access to Revenge and Execute and stronger threat tools."]},
+      {v:"12.1",items:["Ignore Pain prevents 30% of damage with No Stranger to Pain (was 20%).","Dominance of the Colossus: enemies deal 20% less damage to you for 10s (was 10%).","Demolish cooldown 30s (was 45s). Thunder Blast damage +20%."]}],
+    habits:["Shield Slam on cooldown. It is your main Rage engine.","Shield Block for physical melee; extra Rage into Ignore Pain.","Thunder Clap on packs; Revenge as the spender, especially free procs.","Pair Demolish with Avatar. At 30s it is a near-every-pack button in M+.","Spell Reflect dangerous casts. Plan Shield Wall and Last Stand for big pulls."],
+    tier:[["2pc","Free Revenges deal 15% more and buff your next Shield Slam by 20%."],["4pc","Ravager and free Revenges make all targets bleed over 12s."]],
+    links:[["Icy Veins","https://www.icy-veins.com/wow/protection-warrior-pve-tank-guide"],["Method","https://www.method.gg/guides/protection-warrior/introduction"],["Archon","https://www.archon.gg/wow/builds/protection/warrior/mythic-plus/overview/10/all-dungeons/this-week"],["Raidbots","https://www.raidbots.com/simbot"]],
+    prompts:["What should I do tonight?","Big pull defensive plan","Demolish in M+","Kith'ix tanking tips","Any Prot hotfixes this week?"]},
+  sham:{cls:"SHAMAN",short:"Resto Shaman",name:"Restoration Shaman",role:"Healer",color:"#3d93f2",hero:"Totemic",
+    tags:[["hero","Totemic"],["","~97% of PTR M+ Resto"],["warn","Mana is the pain point"]],
+    status:"Totemic is the default and the Season 2 tier set leans into it. Farseer got help in 12.1 but still trails. Mana pressure is the main weakness. Only bug fixes showed up for Resto in 12.1.5.",
+    changes:[{v:"12.1.5",now:1,items:["No notable Resto tuning; Shaman bug fixes only."]},
+      {v:"12.1",items:["Healing Rain: 12s cooldown, 18s duration (Farseer). Doesn't affect Surging Totem.","Chain Heal from Farseer Ancestors +50%."]},
+      {v:"12.0.5",items:["Global healing +8%, damage +30%."]}],
+    habits:["Riptide on cooldown to keep Tidal Waves rolling.","Totemic: Surging Totem where the group stacks handles your Healing Rain.","Healing Stream Totem on cooldown; Riptide can upgrade it to Stormstream.","Chain Heal for group damage, Healing Wave for single target. Earth Shield the tank.","Spirit Link for spikes; Healing Tide is the Totemic big cooldown."],
+    tier:[["2pc","Effects scale up while Totemic via Surging Totem."],["Tip","Totemic is the safer pick while wearing this set."]],
+    links:[["Icy Veins","https://www.icy-veins.com/wow/restoration-shaman-pve-healing-guide"],["Method","https://www.method.gg/guides/restoration-shaman/introduction"],["Archon","https://www.archon.gg/wow/builds/restoration/shaman/mythic-plus/overview/10/all-dungeons/this-week"],["Raidbots","https://www.raidbots.com/simbot"]],
+    prompts:["What should I do tonight?","Help with mana","Raid cooldown plan","Totemic or Farseer?","Any Resto hotfixes this week?"]},
+  mage:{cls:"MAGE",short:"Fire Mage",name:"Fire Mage",role:"Ranged DPS",color:"#3fc7eb",hero:"Sunfury or Frostfire",
+    tags:[["hero","Sunfury / Frostfire"],["good","+12% damage in 12.1"],["","No changes in 12.1.5"]],
+    status:"Nothing changed for Fire in 12.1.5, so your build carries over. The big buffs landed in 12.1: +12% to all Fire damage and a strong Pyroclasm tier set.",
+    changes:[{v:"12.1.5",now:1,items:["No Fire Mage changes."]},
+      {v:"12.1",items:["All Fire damage +12%. Pyroclasm proc lasts 20s.","Blazing Barrier has 2 charges. Improved Warding: 4% less AoE damage.","Alter Time heals 20% instantly plus 30% over 6s."]},
+      {v:"Launch",items:["Shifting Power, Blast Wave, Mass Barrier and Phoenix Flames removed from Fire."]}],
+    habits:["Build Hot Streak with filler and Fire Blast, spend on instant Pyroblast or Flamestrike.","Pool Fire Blast charges before Combustion.","Pyroclasm: hard cast Pyroblast. 2pc crits, 4pc casts 20% faster.","Spend a Blazing Barrier charge before predictable damage.","Alter Time is a real heal now. Treat it as a defensive."],
+    tier:[["2pc","Pyroclasm makes Pyroblast and Flamestrike always crit."],["4pc","Pyroclasm: 20% faster casts and +20% damage bonus."]],
+    links:[["Icy Veins","https://www.icy-veins.com/wow/fire-mage-pve-dps-guide"],["Method","https://www.method.gg/guides/fire-mage/introduction"],["Archon","https://www.archon.gg/wow/builds/fire/mage/mythic-plus/overview/10/all-dungeons/this-week"],["Raidbots","https://www.raidbots.com/simbot"]],
+    prompts:["What should I do tonight?","Combustion walkthrough","Surviving M+ as Fire","Sunfury vs Frostfire now?","Any Fire hotfixes this week?"]}
+};
+const CLASS_COLORS = {WARRIOR:"#c69b6d",SHAMAN:"#3d93f2",MAGE:"#3fc7eb",PALADIN:"#f48cba",PRIEST:"#e8e8e8",ROGUE:"#fff468",DRUID:"#ff7c0a",HUNTER:"#aad372",WARLOCK:"#8788ee",MONK:"#00ff98",DEATHKNIGHT:"#c41e3a",DEMONHUNTER:"#a330c9",EVOKER:"#33937f"};
+const specForClass = cls => Object.keys(SPECS).find(k=>SPECS[k].cls===cls) || null;
+const THEME_ACCENT = {war:"#c69b6d", sham:"#3d93f2", mage:"#ff7a2f"};
+const EMBLEMS = {
+  war:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6-1.7 8-6 8-11V5Z"/><path d="M7.5 14.5 12 10l4.5 4.5M7.5 10.5 12 6l4.5 4.5" stroke="#140f0b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>',
+  sham:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5C9 7 6 10.2 6 14.2a6 6 0 0 0 12 0C18 10.2 15 7 12 2.5Z"/><path d="M9.2 14.6c.3 1.6 1.4 2.6 2.8 2.9" stroke="#140f0b" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>',
+  mage:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.6 2c.6 3.4 4.9 5.6 4.9 10.6A5.5 5.5 0 0 1 6.5 13c0-2.2 1.1-3.9 2.3-5 .1 2 1 3.2 2.2 3.4-.4-3.5.1-6.5 1.6-9.4Z"/><path d="M12 13.2c1.3 1 2 2 2 3.2a2 2 0 0 1-4 0c0-1.2.8-2.2 2-3.2Z" fill="#140f0b" opacity=".55"/></svg>'
+};
+const RUNE_CIRCLE = '<svg viewBox="0 0 200 200" fill="none" stroke="currentColor"><circle cx="100" cy="100" r="92" stroke-width="1.2"/><circle cx="100" cy="100" r="78" stroke-width=".8" stroke-dasharray="2 6"/><circle cx="100" cy="100" r="60" stroke-width="1"/><path d="M100 22 167.5 139H32.5Z" stroke-width=".9"/><path d="M100 178 32.5 61h135Z" stroke-width=".9"/>'+Array.from({length:24},(_,i)=>{const a=i*15*Math.PI/180;return `<line x1="${100+86*Math.cos(a)}" y1="${100+86*Math.sin(a)}" x2="${100+92*Math.cos(a)}" y2="${100+92*Math.sin(a)}" stroke-width="1.2"/>`}).join("")+'</svg>';
+function themeFor(cls){ return specForClass(cls) || "default"; }
+
+const TASKS = [
+  {id:"vault",label:"Open Great Vault",note:"Before you queue"},
+  {id:"kithix",label:"Kith'ix",note:"Single-boss raid",auto:"kith"},
+  {id:"abyss",label:"Venomous Abyss",note:"Season 2 raid",auto:"venomous"},
+  {id:"laby",label:"Labyrinth",note:"Kindo'jan mega delve"},
+  {id:"delves",label:"Bountiful Delves",note:"World Vault slots"},
+  {id:"aqir",label:"Aqir Invasion",note:"Outdoor event"},
+  {id:"prey",label:"Prey hunt",note:"Catch-up in 12.1.5"},
+  {id:"wb",label:"World boss",note:"Instanced lair"},
+  {id:"venom",label:"Venomstones",note:"Orin Straylight"},
+  {id:"prof",label:"Profession weeklies",note:"Knowledge points"}
+];
+
+/* ---------- State ---------- */
+let SV = null;        // server state
+let L = null;         // local (saved to state.json)
+let view = "week";
+function weekStart(now=new Date()){
+  const d = new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),15,0,0));
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay()-2+7)%7));
+  if(d>now) d.setUTCDate(d.getUTCDate()-7);
+  return d;
+}
+const weekKey = () => weekStart().toISOString().slice(0,10);
+function blankLocal(){ return {weekKey:weekKey(),checks:{},keys:{},notes:{},active:null,view:"week",fast:false,setupDismissed:false,ambient:true}; }
+let saveT=null;
+function saveLocal(){ clearTimeout(saveT); saveT=setTimeout(()=>api("/api/local",L).catch(()=>{}),500); }
+function rollWeek(){ if(L.weekKey!==weekKey()){ L.weekKey=weekKey(); L.checks={}; L.keys={}; saveLocal(); return true; } return false; }
+
+function characters(){
+  const now = Date.now()/1000;
+  const out = Object.entries(SV.chars||{}).map(([id,c])=>({id, addon:true, c, cls:c.class, name:c.name||id, spec:c.spec, ilvl:c.ilvl, stale: c.resetAt ? c.resetAt <= now : (c.updated ? c.updated*1000 < weekStart().getTime() : false), updated:c.updated||0}));
+  out.sort((a,b)=>{ const sa=specForClass(a.cls)?0:1, sb=specForClass(b.cls)?0:1; return sa-sb || b.updated-a.updated; });
+  const have = new Set(out.map(o=>o.cls));
+  for(const k of ["war","sham","mage"]){
+    const sp=SPECS[k];
+    if(!have.has(sp.cls)) out.push({id:"default-"+k, addon:false, cls:sp.cls, name:sp.short, spec:null});
+  }
+  return out;
+}
+function activeChar(){ const cs=characters(); return cs.find(c=>c.id===L.active) || cs[0]; }
+
+/* ---------- Header ---------- */
+function renderChars(){
+  const cs = characters(), a = activeChar();
+  $("chars").innerHTML = cs.map(c=>{
+    const th = themeFor(c.cls);
+    const col = THEME_ACCENT[th] || CLASS_COLORS[c.cls] || "#dcb65e";
+    const sub = c.addon ? [c.spec, c.ilvl?("ilvl "+c.ilvl):""].filter(Boolean).join(" · ") : "Not tracked yet";
+    const tip = c.addon ? [c.name, c.spec, c.ilvl?("item level "+c.ilvl):"", c.stale?"last synced before reset":("synced "+ago(c.updated))].filter(Boolean).join(" · ") : "Not synced yet. Log in with the addon enabled.";
+    return `<button class="char" style="--c:${col}" data-id="${esc(c.id)}" aria-pressed="${c.id===a.id}" data-tip="${esc(tip)}"><span class="gem">${EMBLEMS[th] || esc((c.name||"?")[0])}</span><span class="t"><b>${esc(c.name)}</b><small>${esc(sub)}</small></span></button>`;
+  }).join("");
+  const th = themeFor(a.cls);
+  if(document.body.dataset.class !== th){ document.body.dataset.class = th; fx.setTheme(th); }
+  if(th==="default") document.documentElement.style.setProperty("--spec", CLASS_COLORS[a.cls]||"#dcb65e");
+  else document.documentElement.style.removeProperty("--spec");
+  document.querySelectorAll("#seg button").forEach(b=>b.setAttribute("aria-selected", b.dataset.view===view));
+}
+$("chars").addEventListener("click",e=>{ const b=e.target.closest("[data-id]"); if(!b) return; L.active=b.dataset.id; saveLocal(); render(); });
+$("seg").addEventListener("click",e=>{ const b=e.target.closest("[data-view]"); if(!b||b.dataset.view===view) return; view=b.dataset.view; L.view=view; saveLocal(); render(); });
+
+function tick(){
+  const ms = Math.max(0, weekStart().getTime()+7*864e5-Date.now());
+  const d=Math.floor(ms/864e5), h=Math.floor(ms%864e5/36e5), m=Math.floor(ms%36e5/6e4);
+  $("resetIn").textContent = d>0 ? `${d}d ${h}h` : `${h}h ${m}m`;
+  const at = new Date(weekStart().getTime()+7*864e5);
+  $("resetChip").dataset.tip = "Weekly reset " + at.toLocaleString("en-US",{weekday:"long",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+  if(L && rollWeek() && view==="week") render();
+}
+
+/* ---------- Week ---------- */
+function vaultGroups(c){
+  const names = {Activities:"Dungeons",MythicPlus:"Dungeons",Raid:"Raid",World:"World",RankedPvP:"PvP"};
+  const byNum = {1:"Dungeons",2:"PvP",3:"Raid",6:"World"};
+  const g = {};
+  for(const a of (c.vault||[])){
+    const k = names[a.kind] || byNum[a.type]; if(!k) continue;
+    (g[k] = g[k] || []).push(a);
+  }
+  for(const k in g) g[k].sort((x,y)=>(x.index||0)-(y.index||0));
+  return ["Raid","Dungeons","World","PvP"].filter(k=>g[k] && (k!=="PvP" || g[k].some(a=>a.progress>0))).map(k=>[k,g[k]]);
+}
+function ago(ts){
+  const s = Math.max(0, Date.now()/1000 - ts);
+  if(s<90) return "just now"; if(s<3600) return Math.round(s/60)+" min ago"; if(s<86400) return Math.round(s/3600)+" h ago"; return Math.round(s/86400)+" days ago";
+}
+function setupCard(){
+  const w = SV.wow, hasKey = SV.settings.hasKey, addon = !!w.addonInstalled, synced = Object.keys(SV.chars||{}).length>0;
+  if(hasKey && addon && synced) return "";
+  if(L.setupDismissed) return "";
+  const step = (done,n,title,body,btn)=>`<div class="step ${done?"done":""}"><span class="n">${done?"":n}</span><div class="s"><b>${title}</b><p>${body}</p>${!done&&btn?btn:""}</div></div>`;
+  let syncBody;
+  if(!addon) syncBody = "After the addon is installed, log in or type /reload on each character.";
+  else if(w.parseError) syncBody = `I found the addon's data but couldn't read it: <code>${esc(w.parseError)}</code>. Send this to Claude.`;
+  else if(w.savedVariables>0) syncBody = `Found addon data (saved ${ago(w.savedVariablesAt)}) but no characters in it yet. Type /reload once more in game.`;
+  else syncBody = `No addon data yet. In game, type <b>/wt</b>.<br>• If it prints a Vault summary, type <b>/reload</b> and this updates in a few seconds.<br>• If WoW says it doesn't know the command, the addon isn't loaded. At character select, open AddOns, make sure War Table Companion is ticked, then log in.<br>• Still nothing? Check this is the WoW you play from:<br><code>${esc(w.retail)}</code>`;
+  return `<section class="card setup"><div class="row"><h2>Finish setting up</h2><button class="link small sp" id="dismissSetup">Hide</button></div><div class="steps">
+    ${step(addon,1,"Install the addon", w.found?"One click, straight into your AddOns folder.":"I couldn't find WoW. Set your WoW folder in Settings.", w.found?'<button class="btn sm" data-act="install">Install addon</button>':'<button class="btn ghost sm" data-act="settings">Open Settings</button>')}
+    ${step(synced,2,"Sync your characters", syncBody, addon?'<button class="btn ghost sm" data-act="recheck">Check again</button>':"")}
+    ${step(hasKey,3,"Add your API key", "Powers the Ask tab. Stored encrypted on this PC.",'<button class="btn ghost sm" data-act="settings">Add key</button>')}
+  </div></section>`;
+}
+const VAULT_DEFAULTS = {Raid:[2,4,6], Dungeons:[1,4,8], World:[2,4,8]};
+function weekLabel(){
+  const d = weekStart();
+  return "Week of " + d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+}
+function vaultRows(wk, manualKeys){
+  const groups = new Map(wk ? vaultGroups(wk) : []);
+  if(!wk && manualKeys) groups.set("Dungeons", VAULT_DEFAULTS.Dungeons.map((t,i)=>({index:i+1,progress:manualKeys,threshold:t,level:0})));
+  const order = ["Raid","Dungeons","World"].concat(groups.has("PvP")?["PvP"]:[]);
+  return order.map(k=>{
+    const acts = groups.get(k) || (VAULT_DEFAULTS[k]||[]).map((t,i)=>({index:i+1,progress:0,threshold:t,level:0}));
+    const prog = Math.max(0,...acts.map(x=>x.progress||0)), top = Math.max(0,...acts.map(x=>x.threshold||0));
+    const unlocked = acts.filter(x=>(x.progress||0)>=(x.threshold||1)).length;
+    const gems = acts.slice(0,3).map(x=>{
+      const on = (x.progress||0)>=(x.threshold||1);
+      const p = Math.min(100, Math.round(100*(x.progress||0)/(x.threshold||1)));
+      const lbl = on && k==="Dungeons" && x.level ? "+"+x.level : x.threshold;
+      const unit = k==="Raid" ? "bosses" : k==="Dungeons" ? "dungeons" : k==="World" ? "delves or world activities" : "wins";
+      const tip = on ? `Slot ${x.index||""} unlocked${k==="Dungeons"&&x.level?" · +"+x.level+" reward":""}` : `Slot ${x.index||""} · ${Math.max(0,(x.threshold||0)-(x.progress||0))} more ${unit} to unlock`;
+      return `<div class="vg ${on?"on":(p>0?"part":"")}" style="--p:${p}%" data-tip="${esc(tip)}"><i></i><span>${esc(lbl)}</span></div>`;
+    }).join("");
+    return `<div class="vrow"><div class="vt"><b>${k}</b><small>${prog}/${top} · ${unlocked} of 3 slots</small></div><div class="gems">${gems}</div></div>`;
+  }).join("");
+}
+function renderWeek(){
+  const a = activeChar();
+  const s = a.addon ? a.c : null;            // character stats (item level, rating) carry across weeks
+  const wk = s && !a.stale ? s : null;        // this week's progress only
+  const checks = L.checks[a.id] || {};
+  let html = setupCard();
+
+  // Last week's unlocked slots turn into rewards at reset.
+  const lastWeekUnlocked = a.stale && s ? vaultGroups(s).some(([,acts])=>acts.some(x=>(x.progress||0)>=(x.threshold||1))) : false;
+  if((wk && wk.vaultReady) || lastWeekUnlocked) html += `<div class="banner-ready"><b>Great Vault rewards are waiting.</b><span class="muted small">Pick them before you queue.</span></div>`;
+
+  // Vault: always shown, this week only
+  let syncNote = "";
+  if(!a.addon) syncNote = "Not tracked automatically yet";
+  else if(a.stale) syncNote = "Reset happened · /reload in game";
+  else syncNote = "Synced " + ago(a.updated);
+  html += `<section class="card"><div class="row"><div class="label">Great Vault · ${esc(weekLabel())}</div></div><div class="small faint" style="margin:2px 0 4px">${syncNote}</div>`;
+  html += vaultRows(wk, a.addon ? 0 : (L.keys[a.id]||0));
+  if(!a.addon){
+    const n = L.keys[a.id]||0;
+    html += `<p class="muted small" style="margin:10px 0 0">Log Mythic+ keys by hand until this character syncs:</p><div class="runes" id="runes">${Array.from({length:8},(_,i)=>`<button class="rune ${i<n?"on":""} ${[0,3,7].includes(i)?"slot":""}" data-rune="${i+1}" aria-label="${i+1} keys" data-tip="${i+1} key${i?"s":""} done${[0,3,7].includes(i)?" · unlocks a Vault slot":""}">${i+1}</button>`).join("")}</div>`;
+  }
+  html += `</section>`;
+
+  // Mythic+ and raids: always shown
+  const runs = (wk ? wk.runs : []).slice().sort((x,y)=>(y.level||0)-(x.level||0));
+  const ks = wk && wk.keystone ? `+${esc(wk.keystone.level)} ${esc(wk.keystone.map||"")}` : (a.stale ? "/reload to check" : "None");
+  const rating = s && s.rating ? Math.round(s.rating) : 0;
+  html += `<section class="card"><div class="label">Mythic+</div><div class="stat"><span>Key <b>${ks}</b></span><span>Rating <b>${rating}</b></span><span>Runs <b>${runs.length}</b></span></div>`;
+  html += runs.length ? `<div class="runs">${runs.map(r=>`<span class="run ${r.completed?"":"miss"}" data-tip="${esc(`+${r.level} ${r.map}${r.completed?"":" · not completed in time"}`)}"><b>+${esc(r.level)}</b> ${esc(r.map)}</span>`).join("")}</div>` : `<p class="muted small" style="margin:6px 0 0">No keys run yet this week.</p>`;
+  const raids = wk ? wk.raids : [];
+  html += `<div class="label" style="margin-top:14px">Raid lockouts</div>`;
+  html += raids.length ? raids.map(r=>`<div class="raid"><div class="rt"><span>${esc(r.name)} <span class="muted">${esc(r.difficulty||"")}</span></span><b>${r.killed}/${r.total}</b></div><div class="bar"><i style="width:${r.total?Math.round(100*r.killed/r.total):0}%"></i></div></div>`).join("") : `<p class="muted small" style="margin:6px 0 0">No raid bosses killed yet this week.</p>`;
+  html += `</section>`;
+
+  // Quest log
+  const done = TASKS.filter(t=>taskState(t,a,wk,checks).done).length;
+  html += `<section class="card"><div class="row"><div class="label">This week</div><span class="sp small muted">${TASKS.length-done} left</span></div><div class="quests" id="quests">`;
+  html += TASKS.map(t=>{
+    const st = taskState(t,a,wk,checks);
+    const qtip = st.auto ? (t.id==="delves" ? "Checked off from your World Vault progress" : "Checked off automatically from your raid lockouts") : (st.done ? "Click to uncheck" : "Click when done");
+    return `<button class="q" data-task="${t.id}" aria-pressed="${st.done}" ${st.auto?"disabled":""} data-tip="${qtip}"><span class="bx"></span><span><b>${esc(t.label)}</b><small>${esc(st.note||t.note)}</small>${st.auto?'<span class="auto">Auto</span>':""}</span></button>`;
+  }).join("");
+  html += `</div><div class="row" style="margin-top:10px"><button class="link small faint" id="clearWeek">Clear this character's checks</button></div></section>`;
+  return html;
+}
+function taskState(t,a,c,checks){
+  if(t.auto && c && c.raids){
+    const r = c.raids.find(r=>String(r.name||"").toLowerCase().includes(t.auto) && r.killed>0);
+    if(r) return {done:true,auto:true,note:`${r.killed}/${r.total} ${r.difficulty||""}`.trim()};
+  }
+  if(t.id==="vault" && c && c.vaultReady) return {done:!!checks[t.id],note:"Rewards waiting"};
+  if(t.id==="delves" && c && c.vault){
+    const w = vaultGroups(c).find(([k])=>k==="World");
+    if(w){ const p=Math.max(...w[1].map(x=>x.progress||0)), top=Math.max(...w[1].map(x=>x.threshold||0)); if(p>=top && top>0) return {done:true,auto:true,note:`World ${p}/${top}`}; return {done:!!checks[t.id],note:`World ${p}/${top}`}; }
+  }
+  return {done:!!checks[t.id]};
+}
+
+/* ---------- Spec ---------- */
+function renderSpec(){
+  const a = activeChar(), k = specForClass(a.cls), sp = k && SPECS[k];
+  if(!sp) return `<section class="card"><h2>${esc(a.name)}</h2><p class="muted">I don't have curated intel for this class yet. Ask the War Table and it can look up current guides for you.</p></section>`;
+  const note = (L.notes[k]||"");
+  const offSpec = a.addon && a.spec && !sp.name.startsWith(a.spec) ? `<p class="small" style="color:var(--warn);margin:8px 0 0">You're currently in ${esc(a.spec)}. This intel is for ${esc(sp.name)}.</p>` : "";
+  const deco = (k==="mage" ? `<div class="runes-c" aria-hidden="true">${RUNE_CIRCLE}</div>` : "") + `<div class="wm" aria-hidden="true">${EMBLEMS[k]||""}</div>`;
+  return `<section class="card spec-hero">${deco}<div class="role">${sp.role} · ${esc(a.name)}</div><h1>${sp.name}</h1>
+    <div class="tags">${sp.tags.map(([c,t])=>`<span class="tag ${c}">${esc(t)}</span>`).join("")}</div>
+    <p class="verdict">${esc(sp.status)}</p>${offSpec}</section>
+  <section class="card"><div class="label">What changed</div>${sp.changes.map(c=>`<div class="wave ${c.now?"now":""}"><span class="ver">${esc(c.v)}${c.now?" · live":""}</span>${c.items.map(i=>`<p>${esc(i)}</p>`).join("")}</div>`).join("")}</section>
+  <section class="card"><div class="label">Core habits</div>${sp.habits.map(h=>`<div class="habit">${esc(h)}</div>`).join("")}</section>
+  <section class="card"><div class="label">Season 2 tier set</div>${sp.tier.map(([p,t])=>`<div class="piece"><b>${esc(p)}</b><span>${esc(t)}</span></div>`).join("")}</section>
+  <section class="card"><div class="label">My notes</div><textarea class="notes" id="notes" placeholder="Talent string, keybinds, boss notes...">${esc(note)}</textarea>
+    <div class="links">${sp.links.map(([t,u])=>`<button data-open="${u}">${esc(t)} ↗</button>`).join("")}</div></section>`;
+}
+
+/* ---------- Ask ---------- */
+let turns = [], ctl = null, busy = false;
+const chatLog = []; // rendered history survives view switches
+function renderAsk(){
+  const a = activeChar(), k = specForClass(a.cls), sp = k && SPECS[k];
+  const prompts = sp ? sp.prompts : ["What should I do tonight?","Any big hotfixes this week?"];
+  const noKey = !SV.settings.hasKey;
+  return `<div class="ask">
+    <div class="log" id="log">${chatLog.length ? chatLog.map(m=>m.html).join("") : `<div class="welcome"><div class="big">What are we doing tonight?</div>I can see ${a.addon?"this character's Vault, keys and lockouts":"your weekly list"}, your notes, and this patch's changes.${SV.settings.webSearch?" I can also look up live hotfixes.":""}</div>`}</div>
+    ${noKey?`<section class="card" style="margin-bottom:10px"><b>Add your API key to start asking.</b><p class="muted small" style="margin:4px 0 8px">It stays encrypted on this PC.</p><button class="btn sm" data-act="settings">Open Settings</button></section>`:""}
+    <div class="prompts" id="prompts">${prompts.map(p=>`<button>${esc(p)}</button>`).join("")}</div>
+    <div class="askbar"><label class="toggle" data-tip="Uses the quicker, cheaper model"><input type="checkbox" id="fast" ${L.fast?"checked":""}> Fast answers</label><span class="sp">${chatLog.length?'<button class="link small faint" id="newChat">New chat</button>':""}</span></div>
+    <form class="composer" id="composer"><textarea id="q" rows="1" placeholder="Ask about a pull, a boss, your week..." aria-label="Your question" ${noKey?"disabled":""}></textarea>
+      <button class="send" id="send" type="submit" aria-label="Ask" data-tip="Ask (Enter)" ${noKey?"disabled":""} ${busy?"hidden":""}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+      <button class="send" id="stop" type="button" aria-label="Stop" ${busy?"":"hidden"}><svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="2"/></svg></button></form>
+  </div>`;
+}
+function md(s){
+  const lines = esc(s).split("\n"); let out="", inList=false;
+  const inl = t=>t.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/`([^`]+)`/g,"<code>$1</code>");
+  for(const ln of lines){
+    const m = ln.match(/^\s*(?:[-*•]|\d+\.)\s+(.*)$/);
+    if(m){ if(!inList){out+="<ul>";inList=true;} out+=`<li>${inl(m[1])}</li>`; continue; }
+    if(inList){out+="</ul>";inList=false;}
+    const h = ln.match(/^#{1,4}\s+(.*)$/);
+    if(h){ out+=`<p><strong>${inl(h[1])}</strong></p>`; continue; }
+    if(ln.trim()) out+=`<p>${inl(ln)}</p>`;
+  }
+  if(inList) out+="</ul>";
+  return out;
+}
+function pushMsg(cls, inner){
+  const entry = {cls, inner, get html(){ return `<div class="msg ${this.cls}">${this.inner}</div>`; }};
+  chatLog.push(entry);
+  const log = $("log");
+  if(log){
+    const w = log.querySelector(".welcome"); if(w) w.remove();
+    log.insertAdjacentHTML("beforeend", entry.html);
+    entry.el = log.lastElementChild;
+    log.scrollTop = log.scrollHeight;
+  }
+  return entry;
+}
+function updMsg(entry, inner){
+  entry.inner = inner;
+  const log = $("log");
+  if(log){ const idx = chatLog.indexOf(entry); const el = log.querySelectorAll(".msg")[idx]; if(el){ el.innerHTML = inner; } log.scrollTop = log.scrollHeight; }
+}
+function context(){
+  const a = activeChar(), k = specForClass(a.cls), sp = k && SPECS[k];
+  const lines = [];
+  for(const ch of characters()){
+    const s = ch.addon && !ch.stale ? ch.c : null, chk = L.checks[ch.id]||{};
+    const left = TASKS.filter(t=>!taskState(t,ch,s,chk).done).map(t=>t.label).join(", ");
+    let line = `- ${ch.name} (${ch.cls}${ch.spec?", "+ch.spec:""}${ch.ilvl?", ilvl "+Math.round(ch.ilvl*10)/10:""})`;
+    if(s){
+      const v = vaultGroups(s).map(([k,acts])=>`${k} ${Math.max(...acts.map(x=>x.progress||0))}/${Math.max(...acts.map(x=>x.threshold||0))}`).join(", ");
+      line += `: Vault ${v||"empty"}${s.vaultReady?" (rewards waiting)":""}; key ${s.keystone?("+"+s.keystone.level+" "+(s.keystone.map||"")):"none"}; M+ runs this week ${(s.runs||[]).map(r=>"+"+r.level+" "+r.map).join(", ")||"none"}; raids ${(s.raids||[]).map(r=>r.name+" "+r.difficulty+" "+r.killed+"/"+r.total).join(", ")||"none"}`;
+    } else if(ch.addon) line += `: nothing synced yet this week (last sync was before reset)${ch.c && ch.c.rating?"; M+ rating "+Math.round(ch.c.rating):""}`;
+    else line += `: not synced; manual M+ keys ${L.keys[ch.id]||0}/8`;
+    line += `; still to do: ${left||"nothing"}`;
+    lines.push(line);
+  }
+  const pack = Object.values(SPECS).map(s=>`## ${s.name}\nHero: ${s.hero}\nStatus: ${s.status}\nChanges: ${s.changes.map(c=>c.v+": "+c.items.join(" ")).join(" | ")}\nTier: ${s.tier.map(t=>t.join(": ")).join(" ")}`).join("\n\n");
+  const notes = k ? (L.notes[k]||"").slice(0,2000) : "";
+  const today = new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"});
+  return `You are the War Table, a veteran World of Warcraft advisor who has played since 2004, running as a desktop overlay while Al plays.
+
+Today is ${today}. As of Oct 25, 2026 the live retail patch was Midnight 12.1.5 "The Promise of Tomorrow", Season 2: The Unbinding of Kith'ix (single-boss raid), The Venomous Abyss (8-boss raid), Labyrinth of Kindo'jan (nine-chamber mega delve, Myth gear on top difficulty), Aqir Invasions, Prey, Ascendant Venomstones, Mythic+ Season 2. Weekly reset is Tuesday.
+
+Al plays Protection Warrior, Restoration Shaman and Fire Mage. He has ${a.name} selected right now${sp?" ("+sp.name+")":""}; answer for that character unless he names another.
+
+His characters, live from the in-game addon:
+${lines.join("\n")}
+
+Curated spec notes (verified Oct 25, 2026):
+${pack}
+${notes?"\nHis own notes for this spec:\n"+notes+"\n":""}
+How to answer:
+- He is mid-game in a small overlay: lead with the answer, then short bullets. Aim for under 150 words unless he asks for depth.
+- Be concrete and practical. Use ability names.
+- ${SV.settings.webSearch?"Use web search when the question depends on recent hotfixes, tuning, patch notes or anything newer than your knowledge. Prefer Blizzard, Wowhead, Icy Veins, Method and Archon. Mention the source briefly.":"You cannot browse. If something may have changed recently, say so in one line."}
+- Never invent numbers, talent strings or boss timers. If unsure, say so and point to Archon, Raidbots or the class guide.
+- For "what should I do tonight", prioritize from his unfinished list and Vault progress.
+- Never use em dashes. Plain, direct, friendly gamer tone.`;
+}
+async function ask(q){
+  q=(q||"").trim(); if(!q||busy||!SV.settings.hasKey) return;
+  busy=true; $("send").hidden=true; $("stop").hidden=false; $("q").value=""; autosize();
+  pushMsg("me", esc(q));
+  turns.push({role:"user",content:q});
+  if(turns.length>14) turns=turns.slice(-14);
+  while(turns.length && turns[0].role!=="user") turns.shift();
+  const bubble = pushMsg("ai", '<span class="status dots">Thinking</span>');
+  ctl = new AbortController();
+  let text = "", status = "", failed = false;
+  const paint = ()=>updMsg(bubble, (text?md(text):"") + (status?`<p class="status dots">${esc(status)}</p>`:""));
+  try{
+    const r = await fetch("/api/chat",{method:"POST",signal:ctl.signal,headers:{"X-WT-Token":TOKEN,"Content-Type":"application/json"},body:JSON.stringify({system:context(),messages:turns,fast:!!L.fast})});
+    if(!r.ok){ let e={}; try{e=await r.json();}catch(_){} throw new Error(e.error||"Request failed"); }
+    const rd = r.body.getReader(), dec = new TextDecoder(); let buf="";
+    for(;;){
+      const {value,done} = await rd.read(); if(done) break;
+      buf += dec.decode(value,{stream:true});
+      let i; while((i=buf.indexOf("\n"))>=0){
+        const line = buf.slice(0,i); buf = buf.slice(i+1); if(!line.trim()) continue;
+        let ev; try{ ev=JSON.parse(line); }catch(_){ continue; }
+        if(ev.t==="text"){ if(ev.v===""){ if(text && !text.endsWith("\n")) text+="\n\n"; } else { text+=ev.v; status=""; } paint(); }
+        else if(ev.t==="status"){ status=ev.v; paint(); }
+        else if(ev.t==="error"){ failed=true; status=""; text += (text?"\n\n":"") ; updMsg(bubble, (text?md(text):"")+`<p style="color:var(--bad)">${esc(ev.v)}</p>`); }
+      }
+    }
+    if(!failed){ status=""; paint(); }
+    if(text) turns.push({role:"assistant",content:text}); else turns.pop();
+  }catch(e){
+    if(e.name==="AbortError"){ status=""; if(text){ paint(); turns.push({role:"assistant",content:text}); } else { updMsg(bubble,'<span class="status">Stopped.</span>'); turns.pop(); } }
+    else { updMsg(bubble, (text?md(text):"")+`<p style="color:var(--bad)">${esc(e.message)}</p>`); if(!text) turns.pop(); }
+  }finally{
+    busy=false; ctl=null; if($("send")){ $("send").hidden=false; $("stop").hidden=true; }
+  }
+}
+function autosize(){ const t=$("q"); if(!t) return; t.style.height="34px"; t.style.height=Math.min(120,t.scrollHeight)+"px"; }
+
+/* ---------- Render + events ---------- */
+function render(){
+  try{ renderChars(); }catch(e){ console.error(e); }
+  try{ renderUpdate(); }catch(e){ console.error(e); }
+  const m = $("main");
+  m.classList.toggle("asking", view==="ask");
+  try{
+    if(view==="week") m.innerHTML = `<div class="view">${renderWeek()}</div>`;
+    else if(view==="spec") m.innerHTML = `<div class="view">${renderSpec()}</div>`;
+    else { m.innerHTML = renderAsk(); const lg=$("log"); if(lg) lg.scrollTop=lg.scrollHeight; }
+  }catch(e){
+    console.error(e);
+    m.innerHTML = `<div class="view"><section class="card"><b>This tab hit a problem.</b><p class="muted small" style="margin:6px 0 0">Send this line to Claude so it can be fixed:</p><p class="small" style="font-family:var(--mono);overflow-wrap:anywhere;margin:6px 0 0">${esc(view)}: ${esc(e && e.message || e)}</p></section></div>`;
+  }
+}
+$("main").addEventListener("click", async e=>{
+  const a = activeChar();
+  const q = e.target.closest(".q[data-task]");
+  if(q && !q.disabled){ const id=q.dataset.task; L.checks[a.id]=L.checks[a.id]||{}; L.checks[a.id][id]=!L.checks[a.id][id]; saveLocal(); render(); return; }
+  const rune = e.target.closest("[data-rune]");
+  if(rune){ const v=+rune.dataset.rune; L.keys[a.id] = (L.keys[a.id]===v)?v-1:v; saveLocal(); render(); return; }
+  if(e.target.id==="clearWeek"){ e.target.outerHTML=`<span class="small muted">Clear checks for ${esc(a.name)}? <button class="link small" id="clearYes" style="color:var(--warn)">Clear</button> · <button class="link small" id="clearNo">Keep</button></span>`; return; }
+  if(e.target.id==="clearYes"){ delete L.checks[a.id]; delete L.keys[a.id]; saveLocal(); render(); return; }
+  if(e.target.id==="clearNo"){ render(); return; }
+  if(e.target.id==="dismissSetup"){ L.setupDismissed=true; saveLocal(); render(); return; }
+  if(e.target.id==="newChat"){ turns=[]; chatLog.length=0; render(); return; }
+  const act = e.target.closest("[data-act]");
+  if(act){
+    if(act.dataset.act==="settings") openSheet();
+    if(act.dataset.act==="install") await installAddon(act);
+    if(act.dataset.act==="recheck"){ act.disabled=true; act.textContent="Checking…"; try{ await refresh(); }catch(_){} setTimeout(render,400); }
+    return;
+  }
+  const pr = e.target.closest("#prompts button"); if(pr){ ask(pr.textContent); return; }
+  if(e.target.id==="stop" || e.target.closest("#stop")){ ctl?.abort(); return; }
+});
+$("main").addEventListener("input", e=>{
+  if(e.target.id==="notes"){ const k=specForClass(activeChar().cls); if(k){ L.notes[k]=e.target.value.slice(0,6000); saveLocal(); } }
+  if(e.target.id==="q") autosize();
+});
+$("main").addEventListener("change", e=>{ if(e.target.id==="fast"){ L.fast=e.target.checked; saveLocal(); } });
+$("main").addEventListener("submit", e=>{ if(e.target.id==="composer"){ e.preventDefault(); ask($("q").value); } });
+$("main").addEventListener("keydown", e=>{ if(e.target.id==="q" && e.key==="Enter" && !e.shiftKey){ e.preventDefault(); ask($("q").value); } });
+document.addEventListener("click", e=>{ const o=e.target.closest("[data-open]"); if(o){ e.preventDefault(); api("/api/open",{url:o.dataset.open}).catch(()=>{}); } });
+
+/* ---------- Settings ---------- */
+async function loadScreens(){
+  try{
+    const r = await api("/api/monitors");
+    const m = r.monitors||[];
+    if(!m.length){ $("screens").innerHTML = '<span class="faint small">Screen picker works on Windows.</span>'; return; }
+    if(m.length===1){ $("screens").innerHTML = '<span class="faint small">Only one screen detected. Plug in your second monitor and reopen Settings.</span>'; return; }
+    $("screens").innerHTML = m.map(s=>`<button class="scr" data-screen="${s.index}" aria-pressed="${s.current}"><b>Screen ${s.index+1}${s.primary?" (main)":""}</b><small>${s.width}×${s.height}${s.current?" · here now":""}</small></button>`).join("");
+  }catch(e){ $("screens").innerHTML = `<span class="faint small">${esc(e.message)}</span>`; }
+}
+$("screens").addEventListener("click", async e=>{
+  const b = e.target.closest("[data-screen]"); if(!b || b.getAttribute("aria-pressed")==="true") return;
+  b.disabled = true; msg("screenMsg","Moving…");
+  try{ await api("/api/monitor/move",{index:+b.dataset.screen}); msg("screenMsg","Moved. It will open here next time too.","ok"); }
+  catch(err){ msg("screenMsg",err.message,"err"); }
+  setTimeout(loadScreens, 400);
+});
+function openSheet(){ fillSettings(); loadScreens(); $("sheet").classList.add("open"); $("scrim").classList.add("open"); $("sheet").setAttribute("aria-hidden","false"); }
+function closeSheet(){ $("sheet").classList.remove("open"); $("scrim").classList.remove("open"); $("sheet").setAttribute("aria-hidden","true"); }
+$("openSettings").onclick = openSheet; $("closeSettings").onclick = closeSheet; $("scrim").onclick = closeSheet;
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeSheet(); });
+function msg(id, text, kind){ const el=$(id); el.textContent=text||""; el.className="msgline "+(kind||""); }
+function fillSettings(){
+  const s = SV.settings, w = SV.wow;
+  $("apiKey").value=""; $("apiKey").placeholder = s.hasKey ? "Key saved. Paste a new one to replace it." : "sk-ant-...";
+  $("webSearch").checked = s.webSearch; $("model").value = s.model; $("fastModel").value = s.fastModel;
+  $("wowPath").value = s.wowPath || ""; $("wowPath").placeholder = w.retail || "Not found. Paste your World of Warcraft folder.";
+  msg("wowMsg", w.found ? "Found: "+w.retail : "WoW not found automatically.", w.found?"ok":"warn");
+  msg("addonMsg", w.addonInstalled ? (w.addonInstalled===w.addonBundled ? "Addon installed (v"+w.addonInstalled+")." : "Addon v"+w.addonInstalled+" installed; v"+w.addonBundled+" available. Click Install to update.") : (w.found?"Addon not installed yet.":""), w.addonInstalled?"ok":"");
+  $("installAddon").textContent = w.addonInstalled && w.addonInstalled!==w.addonBundled ? "Update addon" : (w.addonInstalled ? "Reinstall addon" : "Install addon");
+  if(w.parseError) msg("addonMsg","Couldn't read the addon's saved data: "+w.parseError,"err");
+  $("onTop").checked = s.onTop; $("ambient").checked = L.ambient !== false; $("opacity").value = s.opacity; $("opVal").textContent = s.opacity+"%";
+  $("ver").textContent = "War Table v"+SV.version;
+  renderUpdate();
+}
+async function saveSettings(patch, msgId, okText){
+  try{ const r = await api("/api/settings", patch); await refresh(); fillSettings(); render(); if(msgId) msg(msgId, r.warning || okText || "Saved.", r.warning?"warn":"ok"); }
+  catch(e){ if(msgId) msg(msgId, e.message, "err"); }
+}
+$("saveKey").onclick = ()=>{ const v=$("apiKey").value.trim(); if(!v){ msg("keyMsg","Paste a key first.","warn"); return; } saveSettings({apiKey:v},"keyMsg","Key saved and encrypted."); };
+$("removeKey").onclick = ()=>saveSettings({apiKey:""},"keyMsg","Key removed.");
+$("apiKey").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); $("saveKey").click(); } });
+$("testKey").onclick = async()=>{
+  const pasted = $("apiKey").value.trim();
+  if(pasted){ try{ await api("/api/settings",{apiKey:pasted}); await refresh(); fillSettings(); render(); }catch(e){ msg("keyMsg",e.message,"err"); return; } }
+  msg("keyMsg","Testing…"); try{ await api("/api/key/test",{}); msg("keyMsg","Key works.","ok"); }catch(e){ msg("keyMsg",e.message,"err"); } };
+$("webSearch").onchange = e=>saveSettings({webSearch:e.target.checked});
+$("saveModels").onclick = ()=>saveSettings({model:$("model").value,fastModel:$("fastModel").value},"keyMsg","Models saved.");
+$("saveWow").onclick = ()=>saveSettings({wowPath:$("wowPath").value},"wowMsg");
+$("onTop").onchange = e=>saveSettings({onTop:e.target.checked});
+$("ambient").onchange = e=>{ L.ambient = e.target.checked; saveLocal(); fx.refresh(); };
+let opT=null; $("opacity").oninput = e=>{ $("opVal").textContent=e.target.value+"%"; clearTimeout(opT); opT=setTimeout(()=>saveSettings({opacity:+e.target.value}),150); };
+$("installAddon").onclick = e=>installAddon(e.target);
+$("openAddon").onclick = ()=>api("/api/addon/open",{}).then(r=>msg("addonMsg","Opened "+r.path,"ok")).catch(e=>msg("addonMsg",e.message,"err"));
+$("quitBtn").onclick = ()=>{ api("/api/quit",{}).catch(()=>{}); setTimeout(()=>window.close(),300); };
+async function installAddon(btn){
+  btn.disabled = true;
+  try{ const r = await api("/api/addon/install",{}); await refresh(); fillSettings(); msg("addonMsg","Installed to "+r.path+". Type /reload in game.","ok"); render(); }
+  catch(e){ msg("addonMsg", e.message, "err"); if(!$("sheet").classList.contains("open")) openSheet(); }
+  finally{ btn.disabled = false; }
+}
+
+/* ---------- Updates ---------- */
+let updNotesOpen = false;
+function renderUpdate(){
+  const u = SV && SV.update || {};
+  const bar = $("updBar");
+  if(u.busy){
+    bar.hidden = false; $("updText").textContent = u.busy==="restarting" ? "Restarting into the new version…" : "Downloading update…";
+    $("updGo").hidden = true; $("updNotes").hidden = true;
+  } else if(u.available){
+    bar.hidden = false; $("updText").innerHTML = `<b>Update ready:</b> v${esc(u.latest)}`;
+    $("updGo").hidden = false; $("updGo").disabled = false; $("updNotes").hidden = !u.notes;
+    $("updNotes").dataset.tip = (u.notes||"").slice(0,400);
+  } else bar.hidden = true;
+  // settings card
+  let st = `You're on v${esc(u.current||SV.version)}.`;
+  if(u.busy) st += " Updating now…";
+  else if(u.available) st += ` v${esc(u.latest)} is available.`;
+  else if(u.error) st += " " + esc(u.error);
+  else if(u.checkedAt) st += u.latest ? " You're up to date." : " No releases published yet.";
+  $("updStatus").innerHTML = st;
+  $("updInstall").hidden = !u.available || !!u.busy;
+  const nb = $("updNotesBox"); nb.hidden = !(u.available && u.notes); nb.textContent = u.notes || "";
+}
+async function doUpdate(btn){
+  btn.disabled = true;
+  try{
+    await api("/api/update/install",{});
+    SV.update = Object.assign({}, SV.update, {busy:"restarting"}); renderUpdate();
+    setTimeout(()=>{ document.body.innerHTML = '<div style="display:grid;place-content:center;height:100%;text-align:center;color:var(--muted);font-family:var(--body)"><p>Restarting War Table…</p><p class="small">This window will close. The new version opens in a few seconds.</p></div>'; }, 300);
+  }catch(e){
+    btn.disabled = false;
+    $("updText").textContent = e.message;
+    msg("addonMsg",""); $("updStatus").textContent = e.message;
+  }
+}
+$("updGo").onclick = e=>doUpdate(e.target);
+$("updInstall").onclick = e=>doUpdate(e.target);
+$("updNotes").onclick = ()=>{ openSheet(); };
+$("updCheck").onclick = async e=>{
+  e.target.disabled = true; $("updStatus").textContent = "Checking GitHub…";
+  try{ SV.update = await api("/api/update/check",{}); }catch(err){ $("updStatus").textContent = err.message; }
+  e.target.disabled = false; renderUpdate();
+};
+
+/* ---------- Tooltips ---------- */
+const tipEl = $("tip"); let tipT = null, tipFor = null;
+function hideTip(){ clearTimeout(tipT); tipFor = null; tipEl.classList.remove("on"); }
+document.addEventListener("mouseover", e=>{
+  const el = e.target.closest("[data-tip]");
+  if(el === tipFor) return;
+  hideTip();
+  if(!el || !el.dataset.tip) return;
+  tipFor = el;
+  tipT = setTimeout(()=>{
+    if(tipFor !== el || !document.body.contains(el)) return;
+    tipEl.textContent = el.dataset.tip;
+    const r = el.getBoundingClientRect(), tw = tipEl.offsetWidth, tht = tipEl.offsetHeight;
+    let x = Math.min(Math.max(8, r.left + r.width/2 - tw/2), innerWidth - tw - 8);
+    let y = r.bottom + 8; if(y + tht > innerHeight - 8) y = r.top - tht - 8;
+    tipEl.style.left = x+"px"; tipEl.style.top = y+"px"; tipEl.classList.add("on");
+  }, 300);
+});
+document.addEventListener("mousedown", hideTip, true);
+document.addEventListener("scroll", hideTip, true);
+
+/* ---------- Ambient effects ---------- */
+const fx = (()=>{
+  const cv = $("fx"), ctx = cv.getContext("2d");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+  const CFG = {
+    war:    {n:16, colors:["#ff8a3d","#ffb35c","#d2502f"], vy:[-0.35,-0.8], size:[0.7,1.7], sway:0.25, flicker:true,  glow:6, alpha:0.85},
+    sham:   {n:20, colors:["#7fd8c6","#5aa8f5","#c6f1ff"], vy:[-0.12,-0.3], size:[1.0,2.4], sway:0.9,  flicker:false, glow:4, alpha:0.4, ring:true},
+    mage:   {n:30, colors:["#ff7a2f","#ffb35c","#ffd896","#ff5a1f","#3fc7eb"], vy:[-0.45,-1.1], size:[0.7,2.0], sway:0.35, flicker:true, glow:8, alpha:0.9},
+    default:{n:10, colors:["#dcb65e","#f0cf80"], vy:[-0.1,-0.25], size:[0.8,1.6], sway:0.4, flicker:false, glow:4, alpha:0.4}
+  };
+  let theme = "default", ps = [], raf = 0, last = 0, w = 0, h = 0, dpr = 1;
+  const rnd = (a,b)=>a+Math.random()*(b-a);
+  function spawn(c, anywhere){
+    return {x:rnd(0,w), y: anywhere ? rnd(0,h) : h+rnd(0,40), vy:rnd(...c.vy), r:rnd(...c.size), col:c.colors[Math.floor(Math.random()*c.colors.length)], ph:rnd(0,6.28), life:rnd(0.6,1)};
+  }
+  function size(){ dpr = Math.min(2, devicePixelRatio||1); w = innerWidth; h = innerHeight; cv.width = w*dpr; cv.height = h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
+  function enabled(){ return !reduce.matches && !document.hidden && (!L || L.ambient !== false); }
+  function frame(t){
+    raf = 0;
+    if(!enabled()){ ctx.clearRect(0,0,w,h); return; }
+    raf = requestAnimationFrame(frame);
+    if(t - last < 33) return; // about 30 fps; light on the CPU while you play
+    const dt = Math.min(3, (t - last)/16.7); last = t;
+    const c = CFG[theme];
+    ctx.clearRect(0,0,w,h);
+    for(let i=0;i<ps.length;i++){
+      const p = ps[i];
+      p.ph += 0.03*dt; p.y += p.vy*dt; p.x += Math.sin(p.ph)*c.sway*dt*0.6;
+      if(p.y < -20 || p.x < -20 || p.x > w+20){ ps[i] = spawn(c,false); continue; }
+      const fade = Math.min(1, (h - p.y)/120) * Math.min(1, p.y/(h*0.35));
+      let a = c.alpha * p.life * Math.max(0,fade);
+      if(c.flicker) a *= 0.65 + 0.35*Math.sin(p.ph*3.1);
+      ctx.globalAlpha = Math.max(0,a);
+      ctx.shadowBlur = c.glow; ctx.shadowColor = p.col;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283);
+      if(c.ring){ ctx.strokeStyle = p.col; ctx.lineWidth = 0.8; ctx.stroke(); } else { ctx.fillStyle = p.col; ctx.fill(); }
+    }
+    ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+  }
+  function refresh(){ if(enabled() && !raf){ last = 0; raf = requestAnimationFrame(frame); } else if(!enabled()){ ctx.clearRect(0,0,w,h); } }
+  function setTheme(th){ theme = CFG[th] ? th : "default"; const c = CFG[theme]; ps = Array.from({length:c.n},()=>spawn(c,true)); refresh(); }
+  addEventListener("resize", ()=>{ size(); });
+  document.addEventListener("visibilitychange", refresh);
+  reduce.addEventListener?.("change", refresh);
+  size();
+  return {setTheme, refresh};
+})();
+
+/* ---------- Boot ---------- */
+const asList = x => Array.isArray(x) ? x : (x && typeof x==="object" ? Object.values(x) : []);
+async function refresh(){
+  SV = await api("/api/state");
+  for(const c of Object.values(SV.chars||{})){
+    if(!c || typeof c!=="object") continue;
+    for(const f of ["vault","runs","raids"]) c[f] = asList(c[f]).filter(x=>x && typeof x==="object");
+    if(typeof c.ilvl==="number") c.ilvl = Math.round(c.ilvl*10)/10;
+  }
+  if(!L){ L = Object.assign(blankLocal(), SV.local||{}); view = L.view || "week"; }
+  rollWeek();
+}
+async function poll(){
+  if(busy || document.hidden) return;
+  const before = JSON.stringify([SV&&SV.chars, SV&&SV.wow, SV&&SV.settings]);
+  try{ await refresh(); }catch(e){ return; }
+  const after = JSON.stringify([SV.chars, SV.wow, SV.settings]);
+  const typing = document.activeElement && ["TEXTAREA","INPUT"].includes(document.activeElement.tagName);
+  if(before!==after && !typing && view!=="ask") render();
+  else { renderChars(); renderUpdate(); }
+}
+(async()=>{
+  try{ await refresh(); }catch(e){ document.getElementById("main").innerHTML = `<section class="card"><b>Couldn't load.</b><p class="muted">${esc(e.message)}. Restart WarTable.exe.</p></section>`; return; }
+  render(); tick();
+  const beat = ()=>api("/api/beat",{}).catch(()=>{});
+  beat(); setInterval(beat, 15000);
+  window.addEventListener("pagehide", ()=>{ try{ navigator.sendBeacon("/api/bye?t="+TOKEN); }catch(e){} });
+  setInterval(tick, 30000);
+  setInterval(poll, 10000);
+  document.addEventListener("visibilitychange", poll);
+})();
+</script>
+</body>
+</html>

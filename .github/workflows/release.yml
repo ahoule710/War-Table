@@ -1,0 +1,60 @@
+name: Release
+
+# Push a tag like v1.2.0 and this builds WarTable.exe and publishes a release.
+# The app checks the latest release and offers it as an update.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Test
+        run: |
+          go vet ./...
+          GOOS=windows GOARCH=amd64 go vet ./...
+          go test ./...
+
+      - name: Build
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          mkdir -p dist/WarTable
+          GOOS=windows GOARCH=amd64 go build -trimpath \
+            -ldflags "-H windowsgui -s -w -X main.appVersion=${VERSION}" \
+            -o dist/WarTable.exe .
+          cp dist/WarTable.exe dist/WarTable/
+          sed "s/^WAR TABLE$/WAR TABLE v${VERSION}/" packaging/README.txt > dist/WarTable/README.txt
+          cp -r addon/WarTableCompanion dist/WarTable/
+          (cd dist && zip -qr "WarTable-v${VERSION}.zip" WarTable)
+          (cd dist && sha256sum WarTable.exe "WarTable-v${VERSION}.zip" > SHA256SUMS.txt)
+          cat dist/SHA256SUMS.txt
+
+      - name: Release notes from CHANGELOG.md
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk -v v="$VERSION" '
+            /^## / { if (found) exit; if ($2 == v) { found = 1; next } }
+            found { print }
+          ' CHANGELOG.md > notes.md
+          if [ ! -s notes.md ]; then echo "War Table v${VERSION}" > notes.md; fi
+          cat notes.md
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: War Table ${{ github.ref_name }}
+          body_path: notes.md
+          files: |
+            dist/WarTable.exe
+            dist/WarTable-v*.zip
+            dist/SHA256SUMS.txt
