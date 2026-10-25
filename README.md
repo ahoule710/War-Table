@@ -60,6 +60,6 @@ llvm-cvtres /machine:x64 /out:rsrc_windows_amd64.syso wartable.res
 
 ## Releasing
 
-1. Add a section for the new version to `CHANGELOG.md`.
-2. Tag and push: `git tag v1.2.1 && git push origin v1.2.1`
-3. The Release workflow tests, builds `WarTable.exe`, zips it with the addon, publishes checksums, and creates the GitHub release. Running apps pick it up within a few hours, or right away with **Check now**.
+1. Set the new version in `VERSION` (for example `1.2.1`) and add a matching section to `CHANGELOG.md`.
+2. Push to `main`.
+3. The Release workflow sees a version that hasn't been released yet, runs the tests, builds `WarTable.exe`, zips it with the addon, publishes checksums, and creates the tag and GitHub release. Running apps pick it up within a few hours, or right away with **Check now**.

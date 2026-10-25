@@ -1,10 +1,12 @@
 name: Release
 
-# Push a tag like v1.2.0 and this builds WarTable.exe and publishes a release.
-# The app checks the latest release and offers it as an update.
+# Publishes a release when VERSION on main names a version that hasn't been
+# released yet (or when a v* tag is pushed). The workflow creates the tag.
+# Running apps see the new release and offer it as an update.
 
 on:
   push:
+    branches: [main]
     tags: ["v*"]
 
 permissions:
@@ -16,19 +18,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Decide version
+        id: v
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            V="${GITHUB_REF_NAME#v}"
+          else
+            V="$(tr -d ' \r\n' < VERSION)"
+          fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" != refs/tags/* ]] && git ls-remote --exit-code --tags origin "refs/tags/v$V" > /dev/null; then
+            echo "v$V is already released; nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Releasing v$V"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-go@v5
+        if: steps.v.outputs.skip == 'false'
         with:
           go-version-file: go.mod
 
       - name: Test
+        if: steps.v.outputs.skip == 'false'
         run: |
           go vet ./...
           GOOS=windows GOARCH=amd64 go vet ./...
           go test ./...
 
       - name: Build
+        if: steps.v.outputs.skip == 'false'
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
           mkdir -p dist/WarTable
           GOOS=windows GOARCH=amd64 go build -trimpath \
             -ldflags "-H windowsgui -s -w -X main.appVersion=${VERSION}" \
@@ -41,8 +64,10 @@ jobs:
           cat dist/SHA256SUMS.txt
 
       - name: Release notes from CHANGELOG.md
+        if: steps.v.outputs.skip == 'false'
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
           awk -v v="$VERSION" '
             /^## / { if (found) exit; if ($2 == v) { found = 1; next } }
             found { print }
@@ -51,8 +76,11 @@ jobs:
           cat notes.md
 
       - uses: softprops/action-gh-release@v2
+        if: steps.v.outputs.skip == 'false'
         with:
-          name: War Table ${{ github.ref_name }}
+          tag_name: v${{ steps.v.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          name: War Table v${{ steps.v.outputs.version }}
           body_path: notes.md
           files: |
             dist/WarTable.exe
