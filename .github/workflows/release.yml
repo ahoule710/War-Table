@@ -2,7 +2,13 @@ name: Release
 
 # Publishes a release when VERSION on main names a version that hasn't been
 # released yet (or when a v* tag is pushed). The workflow creates the tag.
+# If Artifact Signing is configured, WarTable.exe is signed before release.
 # Running apps see the new release and offer it as an update.
+#
+# Signing setup (repo Settings > Secrets and variables > Actions):
+#   secrets:   AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID
+#   variables: ARTIFACT_SIGNING_ENDPOINT (e.g. https://eus.codesigning.azure.net/),
+#              ARTIFACT_SIGNING_ACCOUNT, ARTIFACT_SIGNING_PROFILE
 
 on:
   push:
@@ -11,10 +17,16 @@ on:
 
 permissions:
   contents: write
+  id-token: write # lets azure/login use OpenID Connect; no stored passwords
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: windows-2025
+    env:
+      SIGNING_READY: ${{ secrets.AZURE_CLIENT_ID != '' && vars.ARTIFACT_SIGNING_ACCOUNT != '' }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
 
@@ -31,7 +43,7 @@ jobs:
             echo "v$V is already released; nothing to do."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
-            echo "Releasing v$V"
+            echo "Releasing v$V (signing configured: $SIGNING_READY)"
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -44,7 +56,6 @@ jobs:
         if: steps.v.outputs.skip == 'false'
         run: |
           go vet ./...
-          GOOS=windows GOARCH=amd64 go vet ./...
           go test ./...
 
       - name: Build
@@ -52,14 +63,50 @@ jobs:
         env:
           VERSION: ${{ steps.v.outputs.version }}
         run: |
-          mkdir -p dist/WarTable
+          mkdir -p dist
           GOOS=windows GOARCH=amd64 go build -trimpath \
             -ldflags "-H windowsgui -s -w -X main.appVersion=${VERSION}" \
             -o dist/WarTable.exe .
+
+      - name: Sign in to Azure
+        if: steps.v.outputs.skip == 'false' && env.SIGNING_READY == 'true'
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign WarTable.exe
+        if: steps.v.outputs.skip == 'false' && env.SIGNING_READY == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ vars.ARTIFACT_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.ARTIFACT_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.ARTIFACT_SIGNING_PROFILE }}
+          files-folder: ${{ github.workspace }}\dist
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Check signature
+        if: steps.v.outputs.skip == 'false' && env.SIGNING_READY == 'true'
+        shell: pwsh
+        run: |
+          $sig = Get-AuthenticodeSignature dist\WarTable.exe
+          Write-Host "Signature: $($sig.Status) by $($sig.SignerCertificate.Subject)"
+          if ($sig.Status -ne 'Valid') { throw "WarTable.exe is not validly signed" }
+
+      - name: Package
+        if: steps.v.outputs.skip == 'false'
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          mkdir -p dist/WarTable
           cp dist/WarTable.exe dist/WarTable/
           sed "s/^WAR TABLE$/WAR TABLE v${VERSION}/" packaging/README.txt > dist/WarTable/README.txt
           cp -r addon/WarTableCompanion dist/WarTable/
-          (cd dist && zip -qr "WarTable-v${VERSION}.zip" WarTable)
+          pwsh -NoProfile -Command "Compress-Archive -Path dist/WarTable -DestinationPath dist/WarTable-v${VERSION}.zip -Force"
           (cd dist && sha256sum WarTable.exe "WarTable-v${VERSION}.zip" > SHA256SUMS.txt)
           cat dist/SHA256SUMS.txt
 
