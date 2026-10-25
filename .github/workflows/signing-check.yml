@@ -1,0 +1,89 @@
+name: Signing check
+
+# Tests the Artifact Signing setup without publishing anything:
+# 1. the repo variables are set, 2. GitHub can log in to Azure,
+# 3. a throwaway test exe can be signed. Run it any time from the
+# Actions tab with "Run workflow".
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/signing-check.yml"]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  check:
+    runs-on: windows-2025
+    steps:
+      - name: Repo variables
+        shell: bash
+        run: |
+          ok=true
+          for v in ARTIFACT_SIGNING_ENDPOINT="${{ vars.ARTIFACT_SIGNING_ENDPOINT }}" \
+                   ARTIFACT_SIGNING_ACCOUNT="${{ vars.ARTIFACT_SIGNING_ACCOUNT }}" \
+                   ARTIFACT_SIGNING_PROFILE="${{ vars.ARTIFACT_SIGNING_PROFILE }}"; do
+            name="${v%%=*}"; val="${v#*=}"
+            if [ -z "$val" ]; then echo "MISSING variable $name"; ok=false; else echo "$name = $val"; fi
+          done
+          for s in AZURE_CLIENT_ID:${{ secrets.AZURE_CLIENT_ID != '' }} AZURE_TENANT_ID:${{ secrets.AZURE_TENANT_ID != '' }} AZURE_SUBSCRIPTION_ID:${{ secrets.AZURE_SUBSCRIPTION_ID != '' }}; do
+            if [ "${s#*:}" = "true" ]; then echo "${s%%:*} is set"; else echo "MISSING secret ${s%%:*}"; ok=false; fi
+          done
+          case "${{ vars.ARTIFACT_SIGNING_ENDPOINT }}" in
+            https://*.codesigning.azure.net*) ;;
+            *) echo "ARTIFACT_SIGNING_ENDPOINT should look like https://eus.codesigning.azure.net/"; ok=false ;;
+          esac
+          $ok
+
+      - name: Log in to Azure
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Show the signed-in identity
+        shell: pwsh
+        run: az account show --query "{subscription:name, tenant:tenantId, user:user.name}" -o table
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build a throwaway test exe
+        shell: bash
+        run: |
+          mkdir -p signtest
+          printf 'package main\nfunc main() {}\n' > signtest/main.go
+          (cd signtest && go mod init signtest >/dev/null 2>&1 && go build -o test.exe .)
+
+      - name: Try signing
+        id: sign
+        continue-on-error: true
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ vars.ARTIFACT_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.ARTIFACT_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.ARTIFACT_SIGNING_PROFILE }}
+          files-folder: ${{ github.workspace }}\signtest
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Result
+        shell: pwsh
+        run: |
+          $sig = Get-AuthenticodeSignature signtest\test.exe
+          if ($sig.Status -eq 'Valid') {
+            $msg = "Signing works. Publisher: $($sig.SignerCertificate.Subject)"
+          } else {
+            $msg = "Azure login works, but signing didn't. Expected until the 'wartable' certificate profile exists (step 6). If it already exists, check the Certificate Profile Signer role on war-table-github."
+          }
+          Write-Host $msg
+          "### Signing check`n$msg" | Out-File -Append $env:GITHUB_STEP_SUMMARY
